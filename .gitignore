@@ -1,0 +1,19 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+
+# Node.js (React)
+node_modules/
+dist/
+.env
+.DS_Store
+
+# OS / Editor Files
+*.swp
+*.swo
+.idea/
+.vscode/
