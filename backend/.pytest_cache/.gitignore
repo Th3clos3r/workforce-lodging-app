@@ -1,0 +1,22 @@
+# Virtual environment
+venv/
+.env
+
+# Pycache and compiled Python files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Database and migrations cache
+migrations/README
+migrations/env.py
+migrations/script.py.mako
+
+# Logs and local config
+*.log
+instance/
+config.py
+
+# Dependencies
+requirements.txt
