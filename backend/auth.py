@@ -35,6 +35,8 @@ def get_current_user_role(required_role: str):
             if user is None:
                 raise credentials_exception
 
+            print(f"User found: {user.email}, Role: {user.role}")
+
             if str(user.role) != required_role:
                 raise HTTPException(status_code=403,
                                     detail="Not enough permissions")
