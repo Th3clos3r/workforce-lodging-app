@@ -3,8 +3,8 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 
 # Import the Base model from your models.py file
-from models import Base
-from database import DATABASE_URL
+from backend.models import Base
+from backend.database import DATABASE_URL
 
 # Alembic Config object, provides access to the values in alembic.ini
 config = context.config
@@ -43,9 +43,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

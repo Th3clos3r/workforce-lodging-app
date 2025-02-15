@@ -1,1 +1,6 @@
-[]
+[
+  "backend/tests/test_auth.py::test_admin_only_route",
+  "backend/tests/test_auth.py::test_login",
+  "backend/tests/test_auth.py::test_protected_route",
+  "backend/tests/test_auth.py::test_signup"
+]
