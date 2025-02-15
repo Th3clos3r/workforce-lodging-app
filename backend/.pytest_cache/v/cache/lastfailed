@@ -1,0 +1,7 @@
+{
+  "tests/test_auth.py": true,
+  "backend/tests/test_auth.py::test_signup": true,
+  "backend/tests/test_auth.py::test_login": true,
+  "backend/tests/test_auth.py::test_protected_route": true,
+  "backend/tests/test_auth.py::test_admin_only_route": true
+}

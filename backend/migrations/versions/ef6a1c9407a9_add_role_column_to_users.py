@@ -1,7 +1,7 @@
 from alembic import op
 import sqlalchemy as sa
 
-revision = 'ef6a1c9407a9'
+revision = "ef6a1c9407a9"
 down_revision = None
 branch_labels = None
 depends_on = None
