@@ -3,16 +3,24 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 from dotenv import load_dotenv
 
+# Load environment variables
 load_dotenv()
 
+# Get database URL from environment or use default
 DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql://postgres:Computenerd24@localhost:5432/workforce_db"
-)
+    "DATABASE_URL",
+    "postgresql://postgres:Computenerd24@localhost:5432/workforce_db")
 
-
+# Create database engine
 engine = create_engine(DATABASE_URL)
+
+# Create a configured "Session" class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Base class for SQLAlchemy models
 Base = declarative_base()
+
+# Dependency function for database session
 
 
 def get_db():
@@ -21,10 +29,3 @@ def get_db():
         yield db
     finally:
         db.close()
-
-
-print("DATABASE_URL:", DATABASE_URL)  # Debugging line
-
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
