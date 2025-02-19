@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from __future__ import annotations
+from pydantic import BaseModel, Field
+from typing import Optional
 
 
 class Token(BaseModel):
@@ -7,14 +9,14 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    email: str | None = None
+    email: Optional[str] | None
     role: str
 
 
 class UserCreate(BaseModel):
     email: str
     password: str
-    role: str = "user"
+    role: str = Field(default="user")
 
 
 class UserResponse(BaseModel):

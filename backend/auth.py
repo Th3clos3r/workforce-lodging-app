@@ -7,6 +7,7 @@ from jose import JWTError, jwt
 import os
 from dotenv import load_dotenv
 from fastapi.security import OAuth2PasswordBearer
+from typing import Optional
 
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkey")
@@ -28,7 +29,8 @@ def get_current_user_role(required_role: str):
         )
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            email: str | None = payload.get("sub")
+            email: Optional[str] = payload.get("sub")
+
             if email is None:
                 raise credentials_exception
 
@@ -36,19 +38,15 @@ def get_current_user_role(required_role: str):
             if user is None:
                 raise credentials_exception
 
-            print(f"User found: {user.email}, Role: {user.role}")
-
             if str(user.role) != required_role:
-                raise HTTPException(status_code=403, detail="Not enough permissions")
+                raise HTTPException(status_code=403,
+                                    detail="Not enough permissions")
 
             return user
         except JWTError:
             raise credentials_exception
 
     return role_checker
-
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str):

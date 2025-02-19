@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from backend.database import SessionLocal
 from backend.schemas import UserCreate, UserResponse, Token, TokenData
@@ -10,6 +10,7 @@ from jose import JWTError, jwt
 import os
 from dotenv import load_dotenv
 from backend.auth import get_current_user_role
+from typing import Optional
 
 
 load_dotenv()
@@ -20,7 +21,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 router = APIRouter()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 def get_db():
@@ -31,11 +32,22 @@ def get_db():
         db.close()
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(
+    data: dict, expires_delta: Optional[timedelta] = None
+):
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=15))
+
+    expire = datetime.now(timezone.utc) + (
+        expires_delta or timedelta(minutes=15)
+    )
+
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+    return jwt.encode(
+        to_encode,
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
 
 
 def get_current_user(
@@ -48,21 +60,18 @@ def get_current_user(
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str | None = payload.get("sub")
+        email: Optional[str] = payload.get("sub")
         if email is None:
             raise credentials_exception
 
-        # 🔹 Use the db session to query the user
         user = db.query(User).filter(User.email == email).first()
-
         if user is None:
             raise credentials_exception
 
-        return TokenData(email=str(user.email), role=str(user.role))
+        return user
 
     except JWTError:
         raise credentials_exception
-        return TokenData(email=str(user.email), role=str(user.role))
 
 
 @router.post("/signup", response_model=UserResponse)
@@ -72,7 +81,9 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already registered")
 
     new_user = User(
-        email=user.email, hashed_password=hash_password(user.password), role=user.role
+        email=user.email,
+        hashed_password=hash_password(user.password),
+        role=user.role
     )
     db.add(new_user)
     db.commit()
@@ -82,10 +93,12 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 def login_user(
-    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
 ):
     user = db.query(User).filter(User.email == form_data.username).first()
-    if not user or not verify_password(form_data.password, user.hashed_password):
+    if not user or not verify_password(form_data.password,
+                                       user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     access_token = create_access_token(
@@ -106,6 +119,28 @@ def protected_route(token: str = Depends(oauth2_scheme)):
     return {"message": "You have access!", "token": token}
 
 
-@router.get("/admin-only", dependencies=[Depends(get_current_user_role("admin"))])
-def admin_dashboard():
-    return {"message": "Welcome, Admin! You have full access."}
+@router.get("/admin-only")
+def admin_only(
+    required_role: str = "admin",
+    current_user_role: str = Depends(get_current_user_role),
+):
+    if current_user_role != required_role:
+        raise HTTPException(status_code=403, detail="Access forbidden")
+    return {"message": "Welcome, admin!"}
+
+
+@router.delete("/delete-test-users",
+               status_code=status.HTTP_204_NO_CONTENT)
+def delete_test_users(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Admin-only endpoint to delete test users"""
+
+    if str(current_user.role) != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    db.query(User).filter(User.email.like("%testuser%")
+                          ).delete(synchronize_session=False)
+    db.commit()
+    return {"message": "Test users deleted"}
