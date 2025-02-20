@@ -7,42 +7,20 @@ branch_labels = None
 depends_on = None
 
 
-def upgrade() -> None:
-    """Apply migration: Add 'role' column with default 'user'"""
-    op.add_column(
-        "users",
-        sa.Column("role", sa.String(), nullable=False, server_default="user"),
-    )
-
-    op.alter_column(
-        "users",
-        "email",
-        existing_type=sa.VARCHAR(),
-        nullable=False,
-    )
-
-    op.alter_column(
-        "users",
-        "hashed_password",
-        existing_type=sa.VARCHAR(),
-        nullable=False,
+def upgrade():
+    op.create_table(
+        'lodgings',
+        sa.Column('id', sa.Integer(), primary_key=True, index=True),
+        sa.Column('name', sa.String(), nullable=False),
+        sa.Column('location', sa.String(), nullable=False),
+        sa.Column('price_per_night', sa.Float(), nullable=False),
+        sa.Column('availability', sa.Boolean(), default=True),
+        sa.Column('description', sa.Text(), nullable=True),
+        sa.Column('created_at', sa.DateTime(), server_default=sa.func.now()),
+        sa.Column('updated_at', sa.DateTime(), server_default=sa.func.now(),
+                  onupdate=sa.func.now()),
     )
 
 
-def downgrade() -> None:
-    """Rollback migration: Remove 'role' column"""
-    op.alter_column(
-        "users",
-        "hashed_password",
-        existing_type=sa.VARCHAR(),
-        nullable=True,
-    )
-
-    op.alter_column(
-        "users",
-        "email",
-        existing_type=sa.VARCHAR(),
-        nullable=True,
-    )
-
-    op.drop_column("users", "role")
+def downgrade():
+    op.drop_table('lodgings')

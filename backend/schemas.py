@@ -1,6 +1,22 @@
 from __future__ import annotations
 from pydantic import BaseModel, Field
 from typing import Optional
+from datetime import datetime
+
+
+class LodgingResponse(BaseModel):
+    id: int
+    name: str
+    location: str
+    price_per_night: float
+    availability: bool
+    description: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class Config:
+    from_attributes = True
 
 
 class Token(BaseModel):

@@ -2,9 +2,12 @@ from fastapi import FastAPI
 from fastapi.security import OAuth2PasswordBearer
 from backend.auth_routes import router as auth_router
 from backend.database import engine, Base
+from backend.api.routers import lodging_router  # Ensure import is correct
 
 
 app = FastAPI()
+
+app.include_router(lodging_router.router)
 
 app.include_router(auth_router, prefix="/auth")
 
