@@ -5,7 +5,8 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from backend.database import DATABASE_URL
 from backend.models import Base  # Base MUST be imported first!
-import backend.models  # Ensures Alembic detects models (even if "unused")
+import backend.models  # noqa: F401
+
 
 # ✅ Setup logging
 logger = logging.getLogger(__name__)
