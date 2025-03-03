@@ -11,7 +11,7 @@ app.include_router(lodging_router, prefix="",
                    tags=["Lodgings"])
 
 
-app.include_router(auth_router, prefix="/auth")
+app.include_router(auth_router)
 
 Base.metadata.create_all(bind=engine)
 
