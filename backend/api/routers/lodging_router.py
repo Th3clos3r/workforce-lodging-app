@@ -6,7 +6,7 @@ from backend.models import Lodging
 from backend.schemas import LodgingResponse, LodgingCreate, LodgingUpdate
 from typing import List
 
-router = APIRouter(tags=["lodgings"])
+router = APIRouter(prefix="/lodgings")
 
 
 @router.post("/", response_model=LodgingResponse)
@@ -45,3 +45,16 @@ def update_lodging(lodging_id: int, lodging_data: LodgingUpdate,
     db.commit()
 
     return db.query(Lodging).filter(Lodging.id == lodging_id).first()
+
+
+@router.delete("/{lodging_id}", status_code=204)
+def delete_lodging(lodging_id: int, db: Session = Depends(get_db)):
+    lodging = db.query(Lodging).filter(Lodging.id == lodging_id).first()
+
+    if not lodging:
+        raise HTTPException(status_code=404, detail="Lodging not found")
+
+    db.delete(lodging)
+    db.commit()
+
+    return {"message": "Lodging deleted successfully"}
