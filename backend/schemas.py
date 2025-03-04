@@ -1,6 +1,34 @@
 from __future__ import annotations
 from pydantic import BaseModel, Field
 from typing import Optional
+from datetime import datetime
+
+
+class LodgingBase(BaseModel):
+    name: str
+    location: str
+    price_per_night: float
+    availability: bool
+    description: str
+
+
+class LodgingCreate(LodgingBase):
+    pass
+
+
+class LodgingResponse(BaseModel):
+    id: int
+    name: str
+    location: str
+    price_per_night: float
+    availability: bool
+    description: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class Config:
+    from_attributes = True
 
 
 class Token(BaseModel):
@@ -26,3 +54,11 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class LodgingUpdate(BaseModel):
+    name: Optional[str] = None
+    location: Optional[str] = None
+    price_per_night: Optional[float] = None
+    availability: Optional[bool] = None
+    description: Optional[str] = None

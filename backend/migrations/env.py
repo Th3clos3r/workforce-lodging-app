@@ -1,26 +1,33 @@
 from logging.config import fileConfig
+import logging  # ✅ Import logging
+
 from sqlalchemy import engine_from_config, pool
 from alembic import context
-
-# Import the Base model from your models.py file
-from backend.models import Base
 from backend.database import DATABASE_URL
+from backend.models import Base  # Base MUST be imported first!
+import backend.models  # noqa: F401
 
-# Alembic Config object, provides access to the values in alembic.ini
+
+# ✅ Setup logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+# ✅ Alembic Config object
 config = context.config
-
-# Set the database URL dynamically
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
-# Setup logging
-if config.config_file_name is not None:
+# ✅ Setup Alembic logging
+if config.config_file_name:
     fileConfig(config.config_file_name)
 
-# Set target metadata to include all models from SQLAlchemy Base
+# ✅ Set Metadata after models are imported
 target_metadata = Base.metadata
 
+# ✅ Log detected tables
+logger.info(f"TARGET METADATA TABLES: {list(target_metadata.tables.keys())}")
 
-def run_migrations_offline() -> None:
+
+def run_migrations_offline():
     """Run migrations in 'offline' mode."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
@@ -34,7 +41,7 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-def run_migrations_online() -> None:
+def run_migrations_online():
     """Run migrations in 'online' mode."""
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),

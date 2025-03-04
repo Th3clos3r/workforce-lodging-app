@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 from backend.database import get_db
@@ -6,7 +6,7 @@ from backend.models import Lodging, User
 from backend.schemas import LodgingResponse, LodgingCreate, LodgingUpdate
 from typing import List, Optional
 from backend.auth import get_current_user
-
+from fastapi import status
 
 router = APIRouter(prefix="/lodgings", tags=["Lodgings"])
 
