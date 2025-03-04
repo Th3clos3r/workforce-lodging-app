@@ -6,11 +6,13 @@ from backend.models import Lodging, User
 from backend.schemas import LodgingResponse, LodgingCreate, LodgingUpdate
 from typing import List
 from backend.auth import get_current_user
+from fastapi import status
 
 router = APIRouter(prefix="/lodgings", tags=["Lodgings"])
 
 
-@router.post("/", response_model=LodgingResponse)
+@router.post("/", response_model=LodgingResponse,
+             status_code=status.HTTP_201_CREATED)
 def create_lodging(
     lodging: LodgingCreate,
     db: Session = Depends(get_db),
