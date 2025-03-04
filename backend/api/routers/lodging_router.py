@@ -4,7 +4,7 @@ from sqlalchemy.sql import func
 from backend.database import get_db
 from backend.models import Lodging, User
 from backend.schemas import LodgingResponse, LodgingCreate, LodgingUpdate
-from typing import List
+from typing import List, Optional
 from backend.auth import get_current_user
 from fastapi import status
 
@@ -30,18 +30,54 @@ def create_lodging(
 
 
 @router.get("/", response_model=List[LodgingResponse])
-def get_lodgings(db: Session = Depends(get_db)):
-    """Retrieve all lodgings (public access)"""
-    return db.query(Lodging).all()
+def get_lodgings(
+    db: Session = Depends(get_db),
+    location: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    availability: Optional[bool] = None,
+    sort_by: Optional[str] = "created_at",
+    order: Optional[str] = "desc",
+    limit: Optional[int] = 10,
+    offset: Optional[int] = 0
+):
+    """
+    Retrieve lodgings with optional filters, sorting, and pagination.
+    """
+    query = db.query(Lodging)
+
+    # Apply filters
+    if location:
+        query = query.filter(Lodging.location.ilike(f"%{location}%"))
+    if min_price is not None:
+        query = query.filter(Lodging.price_per_night >= min_price)
+    if max_price is not None:
+        query = query.filter(Lodging.price_per_night <= max_price)
+    if availability is not None:
+        query = query.filter(Lodging.availability == availability)
+
+    # Apply sorting
+    if sort_by in ["price_per_night", "created_at"]:
+        order_by_column = getattr(Lodging, sort_by)
+        if order == "desc":
+            order_by_column = order_by_column.desc()
+        query = query.order_by(order_by_column)
+
+    # Apply pagination
+    lodgings = query.offset(offset).limit(limit).all()
+    return lodgings
 
 
 @router.get("/{lodging_id}", response_model=LodgingResponse)
 def get_lodging(
     lodging_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db)
 ):
-    """Retrieve a single lodging by ID (public access)"""
+    """
+    Retrieve a single lodging by ID (public access).
+    """
     lodging = db.query(Lodging).filter(Lodging.id == lodging_id).first()
+
     if not lodging:
         raise HTTPException(status_code=404, detail="Lodging not found")
 
