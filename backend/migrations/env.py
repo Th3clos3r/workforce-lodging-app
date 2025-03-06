@@ -7,6 +7,8 @@ from backend.database import DATABASE_URL
 from backend.models import Base  # Base MUST be imported first!
 import backend.models  # noqa: F401
 
+# ✅ Set Metadata after models are imported
+target_metadata = Base.metadata
 
 # ✅ Setup logging
 logger = logging.getLogger(__name__)
@@ -19,9 +21,6 @@ config.set_main_option("sqlalchemy.url", DATABASE_URL)
 # ✅ Setup Alembic logging
 if config.config_file_name:
     fileConfig(config.config_file_name)
-
-# ✅ Set Metadata after models are imported
-target_metadata = Base.metadata
 
 # ✅ Log detected tables
 logger.info(f"TARGET METADATA TABLES: {list(target_metadata.tables.keys())}")

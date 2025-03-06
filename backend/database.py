@@ -1,26 +1,31 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-import os
 from dotenv import load_dotenv
 
-# Load environment variables
+# ✅ Load environment variables
 load_dotenv()
 
-# Get database URL from environment or use default
+# ✅ Get database URL from environment or use default
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres:Computenerd24@localhost:5432/workforce_db")
+    (
+        "postgresql+psycopg2://adamkemper:"
+        "Computenerd24!@localhost/workforce_lodging"
+    )
+)
 
-# Create database engine
+
+# ✅ Create database engine
 engine = create_engine(DATABASE_URL)
 
-# Create a configured "Session" class
+# ✅ Create a configured "Session" class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base class for SQLAlchemy models
+# ✅ Base class for SQLAlchemy models
 Base = declarative_base()
 
-# Dependency function for database session
+# ✅ Dependency function for database session
 
 
 def get_db():
