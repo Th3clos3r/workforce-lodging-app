@@ -69,24 +69,69 @@ def test_protected_route():
     assert response.json()["message"] == "You have access!"
 
 
-def test_admin_only_route():
+def test_admin_only_route_for_non_admin():
     """Test that non-admins cannot access admin-only route"""
 
     login_response = client.post(
         "/auth/login",
-        data={"username": "admin@example.com", "password": "adminpassword"},
+        data={"username": "testuser@example.com", "password": "testpassword"},
     )
 
     token = login_response.json().get("access_token")
     assert token, "No access token returned!"
 
-    headers = {"Authorization": f"Bearer {token}"}
+    response = client.get(
+        "/auth/admin-only",
+        params={"required_role": "admin"},
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    assert response.status_code == 403, (
+        "Non-admin should not access admin route!"
+    )
+
+
+def test_admin_only_route_for_admin():
+    """Test that admins can access admin-only route"""
+    # Log in as admin
+    login_response = client.post(
+        "/auth/login",
+        data={"username": "admin@example.com", "password": "adminpassword"},
+    )
+    token = login_response.json().get("access_token")
+    assert token, "No access token returned!"
 
     response = client.get(
         "/auth/admin-only",
         params={"required_role": "admin"},
-        headers=headers
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    assert response.status_code == 200, (
+        "Admin should be able to access this route!"
+    )
+    assert response.json().get("message") == "Welcome, admin!"
+
+
+def test_read_users_me():
+    """Test the /users/me endpoint"""
+
+    login_response = client.post(
+        "/auth/login",
+        data={"username": "testuser@example.com", "password": "testpassword"},
+    )
+    assert login_response.status_code == 200
+
+    token = login_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    me_response = client.get("/auth/users/me", headers=headers)
+    assert me_response.status_code == 200
+    data = me_response.json()
+    assert data.get("sub") == "testuser@example.com", (
+        "Incorrect user returned!"
     )
 
-    error_message = "Non-admin should not access admin route!"
-    assert response.status_code == 403, error_message
+
+def test_read_users_me_unauthorized():
+    """Ensure /users/me fails without a valid token"""
+    me_response = client.get("/auth/users/me")
+    assert me_response.status_code == 401
