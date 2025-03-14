@@ -1,7 +1,7 @@
 from __future__ import annotations
 from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date
 
 
 class LodgingBase(BaseModel):
@@ -62,3 +62,18 @@ class LodgingUpdate(BaseModel):
     price_per_night: Optional[float] = None
     availability: Optional[bool] = None
     description: Optional[str] = None
+
+
+class BookingCreate(BaseModel):
+    lodging_id: int
+    start_date: date
+    end_date: date
+    # ...
+
+
+class BookingResponse(BaseModel):
+    id: int
+    lodging_id: int
+    user_id: int
+    start_date: date
+    end_date: date
