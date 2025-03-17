@@ -5,7 +5,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from backend.database import Base
-from datetime import datetime
+#  from datetime import datetime
 
 
 class Lodging(Base):
@@ -49,8 +49,8 @@ class Booking(Base):
     check_out_date = Column(DateTime, nullable=False)
     total_price = Column(Float, nullable=False)
     created_at = Column(DateTime, default=func.now)
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
+    #  updated_at = Column(DateTime, default=datetime.utcnow,
+    #  onupdate=datetime.utcnow)
     # Relationship to Lodging
     lodging = relationship("Lodging", back_populates="bookings")
 
