@@ -97,47 +97,39 @@ def get_booking(
     return booking
 
 
-@router.put("/{booking_id}", response_model=BookingResponse)
+@router.put("/{booking_id}")
 def update_booking(
     booking_id: int,
-    booking_data: BookingCreate,  # or BookingUpdate
-    # if you prefer partial updates
+    booking_data: BookingCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Update a booking by ID.
-    Currently requires admin role to mirror lodging logic.
-    """
-    if str(current_user.role) != "admin":
-        raise HTTPException(status_code=403, detail="Not authorized")
-
+    # 1. Load the existing booking
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
 
-    # If you want date overlap checks again, do them here.
-    # For example:
-    # overlap = db.query(Booking).filter(
-    #     Booking.lodging_id == booking_data.lodging_id,
-    #     Booking.id != booking_id,
-    #     Booking.end_date > booking_data.start_date,
-    #     Booking.start_date < booking_data.end_date
-    # ).first()
-    # if overlap:
-    #     raise HTTPException(status_code=409, detail="Date range
-    # not available")
+    # 2. Optional: Overlap checks or other logic
+    # overlap = db.query(Booking)...
+    # if overlap: raise HTTPException(status_code=409,
+    # detail="Date range not available")
 
-    # Perform the update
+    # 3. Convert your Pydantic data to a dict
+    #    exclude_unset=True ensures only changed fields are included
     update_data = booking_data.model_dump(exclude_unset=True)
-    update_data["updated_at"] = func.now()  # if you have an updated_at column
 
-    db.query(Booking).filter(Booking.id == booking_id).update(update_data)
+    # If you have an updated_at column, update it:
+    update_data["updated_at"] = func.now()
+
+    # 4. Loop through update_data and set each attribute
+    # on the booking instance
+    for key, value in update_data.items():
+        setattr(booking, key, value)
+
+    # 5. Commit and refresh
     db.commit()
-
-    updated_booking = db.query(Booking).filter(
-        Booking.id == booking_id).first()
-    return updated_booking
+    db.refresh(booking)
+    return booking
 
 
 @router.delete("/{booking_id}", status_code=204)

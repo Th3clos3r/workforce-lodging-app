@@ -48,11 +48,18 @@ class Booking(Base):
     check_in_date = Column(DateTime, nullable=False)
     check_out_date = Column(DateTime, nullable=False)
     total_price = Column(Float, nullable=False)
-    created_at = Column(DateTime, default=func.now)
-    #  updated_at = Column(DateTime, default=datetime.utcnow,
-    #  onupdate=datetime.utcnow)
-    # Relationship to Lodging
-    lodging = relationship("Lodging", back_populates="bookings")
 
-    # Relationship to User (if you want one)
+    # Status field: "pending", "confirmed", or "canceled"
+    status = Column(
+        Enum("pending", "confirmed", "canceled", name="booking_status"),
+        default="pending",
+        nullable=False
+    )
+
+    # Timestamps
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
+    # Relationships
+    lodging = relationship("Lodging", back_populates="bookings")
     user = relationship("User", back_populates="bookings")

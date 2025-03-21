@@ -11,7 +11,7 @@ DATABASE_URL = os.getenv(
     "DATABASE_URL",
     (
         "postgresql+psycopg2://adamkemper:"
-        "Computenerd24!@localhost/workforce_lodging"
+        "Computenerd24!@localhost:5432/workforce_lodging"
     )
 )
 
