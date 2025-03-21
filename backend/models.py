@@ -63,3 +63,24 @@ class Booking(Base):
     # Relationships
     lodging = relationship("Lodging", back_populates="bookings")
     user = relationship("User", back_populates="bookings")
+
+
+class Invoice(Base):
+    __tablename__ = "invoices"
+
+    id = Column(Integer, primary_key=True, index=True)
+    booking_id = Column(Integer, ForeignKey("bookings.id"), nullable=False)
+
+    amount_due = Column(Float, nullable=False)
+    status = Column(
+        String,
+        default="unpaid"
+    )
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
+    # Relationship to Booking if you want to easily access booking data
+    booking = relationship("Booking", back_populates="invoices")  # optional
+
+# Also, in Booking, you can add:
+# invoices = relationship("Invoice", back_populates="booking")

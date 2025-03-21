@@ -3,6 +3,7 @@ from backend.database import engine, Base
 from backend.auth_routes import router as auth_router
 from backend.api.routers.lodging_router import router as lodging_router
 from backend.api.routers.booking_router import router as booking_router
+from backend.api.routers.invoice_router import router as invoice_router
 
 app = FastAPI()
 
@@ -10,6 +11,7 @@ app = FastAPI()
 app.include_router(lodging_router, prefix="", tags=["Lodgings"])
 app.include_router(auth_router)
 app.include_router(booking_router)
+app.include_router(invoice_router)
 
 # Create DB tables (if not already existing)
 Base.metadata.create_all(bind=engine)

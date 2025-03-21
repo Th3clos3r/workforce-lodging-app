@@ -77,3 +77,27 @@ class BookingResponse(BaseModel):
     user_id: int
     start_date: date
     end_date: date
+
+
+class InvoiceBase(BaseModel):
+    booking_id: int
+    amount_due: float
+    status: Optional[str] = "unpaid"
+
+
+class InvoiceCreate(InvoiceBase):
+    pass
+
+
+class InvoiceUpdate(BaseModel):
+    status: Optional[str] = None
+    amount_due: Optional[float] = None
+
+
+class InvoiceResponse(InvoiceBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
