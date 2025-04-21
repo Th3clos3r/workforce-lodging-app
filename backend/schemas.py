@@ -77,3 +77,21 @@ class BookingResponse(BaseModel):
     user_id: int
     start_date: date
     end_date: date
+
+
+class InvoiceCreate(BaseModel):
+    booking_id: int
+    amount_due: float
+    status: Optional[str] = None
+
+
+class InvoiceResponse(InvoiceCreate):
+    id: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class InvoiceUpdate(BaseModel):
+    status: Optional[str] = None

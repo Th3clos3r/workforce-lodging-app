@@ -63,3 +63,12 @@ class Booking(Base):
     # Relationships
     lodging = relationship("Lodging", back_populates="bookings")
     user = relationship("User", back_populates="bookings")
+
+
+class Invoice(Base):
+    __tablename__ = "invoices"
+    id = Column(Integer, primary_key=True, index=True)
+    booking_id = Column(Integer, ForeignKey("bookings.id"))
+    booking = relationship("Booking")
+    amount_due = Column(Float)
+    status = Column(String, default="pending")
