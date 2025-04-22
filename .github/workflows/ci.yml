@@ -2,9 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [main, feature/bookings]
+    branches:
+      - main
+      - feature/bookings      # make sure this matches your branch name exactly
   pull_request:
-    branches: [main, features/bookings]
+    branches:
+      - main
+      - feature/bookings
 
 jobs:
   build:
@@ -12,6 +16,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.9, 3.10]
+
     steps:
       - uses: actions/checkout@v3
 
