@@ -13,18 +13,11 @@ app = FastAPI()
 
 
 def seed_admin() -> None:
-    """
-    Ensure there is an admin user in the database
-    with email=admin@example.com and password=adminpassword.
-    """
     db: Session = next(get_db())
     try:
         admin_email = "admin@example.com"
         admin_password = "adminpassword"
-
-        # If no such user exists yet, create one:
-        exists = db.query(User).filter(User.email == admin_email).first()
-        if not exists:
+        if not db.query(User).filter(User.email == admin_email).first():
             db.add(
                 User(
                     email=admin_email,
@@ -39,13 +32,13 @@ def seed_admin() -> None:
 
 @app.on_event("startup")
 def on_startup() -> None:
-    # 1) Create any missing tables
+    # Creates tables in Postgres (via engine from DATABASE_URL)
     Base.metadata.create_all(bind=engine)
-
-    # 2) Seed the admin user
+    # Then seed the admin user
     seed_admin()
 
 
+# then include your routers…
 app.include_router(auth_router)
 app.include_router(lodging_router)
 app.include_router(booking_router)
