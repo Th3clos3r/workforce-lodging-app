@@ -7,3 +7,4 @@ python-dotenv
 httpx
 pytest
 passlib[bcrypt]
+python-jose[cryptography]
