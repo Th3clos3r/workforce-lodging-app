@@ -1,38 +1,49 @@
 import pytest
-from backend.database import Base, engine, SessionLocal
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from fastapi.testclient import TestClient
+
+from backend.database import Base, get_db
+from backend.main import app
 from backend.models import User
 from backend.auth import hash_password
 
+# 1) In‑memory SQLite URL
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
+TestingSessionLocal = sessionmaker(
+    autocommit=False, autoflush=False, bind=engine
+)
 
-@pytest.fixture(scope="session", autouse=True)
-def setup_test_db():
-    """
-    BEFORE any tests:
-      - create all tables
-      - seed the admin user (admin@example.com/adminpassword)
-    AFTER all tests:
-      - drop all tables
-    """
-    # 1) Create tables for all models
-    Base.metadata.create_all(bind=engine)
+# 2) Create tables & seed admin
+Base.metadata.create_all(bind=engine)
+db = TestingSessionLocal()
+db.add(
+    User(
+        email="admin@example.com",
+        hashed_password=hash_password("adminpassword"),
+        role="admin",
+    )
+)
+db.commit()
+db.close()
 
-    # 2) Seed admin user so /auth/login works in tests
-    db = SessionLocal()
+
+# 3) Override get_db for all routes/tests
+def override_get_db():
+    db = TestingSessionLocal()
     try:
-        admin_email = "admin@example.com"
-        if not db.query(User).filter(User.email == admin_email).first():
-            db.add(
-                User(
-                    email=admin_email,
-                    hashed_password=hash_password("adminpassword"),
-                    role="admin",
-                )
-            )
-            db.commit()
+        yield db
     finally:
         db.close()
 
-    yield
 
-    # 3) Tear down
-    Base.metadata.drop_all(bind=engine)
+app.dependency_overrides[get_db] = override_get_db
+
+
+# 4) Make a TestClient fixture
+@pytest.fixture(scope="session")
+def client():
+    return TestClient(app)

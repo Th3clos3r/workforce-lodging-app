@@ -1,15 +1,13 @@
-from fastapi.testclient import TestClient
-from backend.main import app
+import pytest
 
-client = TestClient(app)
+# REMOVED: no more global imports or TestClient here!
 
 
 def test_example():
-    """Basic test to verify the test setup"""
     assert 1 + 1 == 2
 
 
-def test_signup():
+def test_signup(client):
     """Test user signup"""
     # Log in as admin to get a token for deletion
     admin_login = client.post(
@@ -39,7 +37,7 @@ def test_signup():
     assert response.status_code == 200, f"Signup failed: {response.json()}"
 
 
-def test_login():
+def test_login(client):
     """Test user login and token retrieval"""
     response = client.post(
         "/auth/login",
@@ -51,7 +49,7 @@ def test_login():
     assert data["token_type"] == "bearer", "Incorrect token type!"
 
 
-def test_protected_route():
+def test_protected_route(client):
     """Test access to a protected route"""
     login_response = client.post(
         "/auth/login",
@@ -69,7 +67,7 @@ def test_protected_route():
     assert response.json()["message"] == "You have access!"
 
 
-def test_admin_only_route_for_non_admin():
+def test_admin_only_route_for_non_admin(client):
     """Test that non-admins cannot access admin-only route"""
 
     login_response = client.post(
@@ -90,7 +88,7 @@ def test_admin_only_route_for_non_admin():
     )
 
 
-def test_admin_only_route_for_admin():
+def test_admin_only_route_for_admin(client):
     """Test that admins can access admin-only route"""
     # Log in as admin
     login_response = client.post(
@@ -111,7 +109,7 @@ def test_admin_only_route_for_admin():
     assert response.json().get("message") == "Welcome, admin!"
 
 
-def test_read_users_me():
+def test_read_users_me(client):
     """Test the /users/me endpoint"""
 
     login_response = client.post(
@@ -131,7 +129,7 @@ def test_read_users_me():
     )
 
 
-def test_read_users_me_unauthorized():
+def test_read_users_me_unauthorized(client):
     """Ensure /users/me fails without a valid token"""
     me_response = client.get("/auth/users/me")
     assert me_response.status_code == 401
