@@ -1,6 +1,18 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - feature/bookings
+  pull_request:
+    branches:
+      - main
+      - feature/bookings
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     services:
       postgres:
@@ -11,27 +23,32 @@ jobs:
           POSTGRES_DB: test_db
         ports:
           - 5432:5432
-        # wait until Postgres is healthy
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
 
-    # point your tests at that service
     env:
       DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/test_db
 
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: ${{ matrix.python-version }}
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install httpx pytest passlib[bcrypt] python-jose[cryptography] python-multipart
+
       - name: Run tests
         run: python -m pytest
