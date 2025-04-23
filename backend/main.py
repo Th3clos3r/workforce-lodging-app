@@ -11,6 +11,19 @@ from backend.api.routers.invoice_router import router as invoice_router
 
 app = FastAPI()
 
+Base.metadata.create_all(bind=engine)
+
+
+@app.on_event("startup")
+def on_startup():
+    seed_admin()
+
+
+app.include_router(auth_router)
+app.include_router(lodging_router)
+app.include_router(booking_router)
+app.include_router(invoice_router)
+
 
 def seed_admin() -> None:
     db: Session = next(get_db())
@@ -28,21 +41,6 @@ def seed_admin() -> None:
             db.commit()
     finally:
         db.close()
-
-
-@app.on_event("startup")
-def on_startup() -> None:
-    # Creates tables in Postgres (via engine from DATABASE_URL)
-    Base.metadata.create_all(bind=engine)
-    # Then seed the admin user
-    seed_admin()
-
-
-# then include your routers…
-app.include_router(auth_router)
-app.include_router(lodging_router)
-app.include_router(booking_router)
-app.include_router(invoice_router)
 
 
 @app.get("/")
