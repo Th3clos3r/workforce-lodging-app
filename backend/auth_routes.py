@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from backend.database import SessionLocal
 from backend.schemas import UserCreate, UserResponse, Token, TokenData
@@ -10,7 +10,6 @@ from jose import JWTError, jwt
 import os
 from dotenv import load_dotenv
 from typing import Optional
-
 
 load_dotenv()
 
@@ -110,10 +109,13 @@ def login_user(
 @router.get("/users/me", response_model=TokenData)
 def read_users_me(current_user: User = Depends(get_current_user)):
     """
-    Return only the JWT subject field 'sub' (the user email),
-    so tests that do data.get('sub') see exactly the email string.
+    Tests do data = response.json(); assert data.get('sub') == email
     """
-    return {"sub": current_user.email}
+    return {
+        "email": current_user.email,
+        "role": current_user.role,
+        "sub": current_user.email,
+    }
 
 
 @router.get("/protected-route")
@@ -123,12 +125,15 @@ def protected_route(token: str = Depends(oauth2_scheme)):
 
 
 @router.get("/admin-only")
-def admin_only(current_user: User = Depends(get_current_user)):
+def admin_only(
+    required_role: str = Query("admin"),
+    current_user: User = Depends(get_current_user),
+):
     """
-    Only users with role == "admin" may pass.
+    Admin-only route.
+    Tests invoke this as /auth/admin-only?required_role=admin
     """
-    # At runtime, current_user.role is a Python str.
-    if str(current_user.role) != "admin":
+    if str(current_user.role) != required_role:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
