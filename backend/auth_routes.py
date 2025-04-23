@@ -110,7 +110,8 @@ def login_user(
 @router.get("/users/me", response_model=TokenData)
 def read_users_me(current_user: User = Depends(get_current_user)):
     """
-    Returns the JWT subject ('sub') as the email of the current user.
+    Return only the JWT subject field 'sub' (the user email),
+    so tests that do data.get('sub') see exactly the email string.
     """
     return {"sub": current_user.email}
 
@@ -122,10 +123,11 @@ def protected_route(token: str = Depends(oauth2_scheme)):
 
 
 @router.get("/admin-only")
-def admin_only(
-    current_user: User = Depends(get_current_user)
-):
-    """Admin-only route"""
+def admin_only(current_user: User = Depends(get_current_user)):
+    """
+    Only users with role == "admin" may pass.
+    """
+    # At runtime, current_user.role is a Python str.
     if str(current_user.role) != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
