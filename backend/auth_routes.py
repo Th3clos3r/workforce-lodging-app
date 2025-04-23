@@ -9,7 +9,6 @@ from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 import os
 from dotenv import load_dotenv
-from backend.auth import get_current_user_role
 from typing import Optional
 
 
@@ -109,9 +108,11 @@ def login_user(
 
 
 @router.get("/users/me", response_model=TokenData)
-def read_users_me(current_user: TokenData = Depends(get_current_user)):
-    """Returns current user information"""
-    return current_user
+def read_users_me(current_user: User = Depends(get_current_user)):
+    """
+    Returns the JWT subject ('sub') as the email of the current user.
+    """
+    return {"sub": current_user.email}
 
 
 @router.get("/protected-route")
@@ -122,12 +123,15 @@ def protected_route(token: str = Depends(oauth2_scheme)):
 
 @router.get("/admin-only")
 def admin_only(
-    required_role: str = "admin",
-    current_user_role: str = Depends(get_current_user_role),
+    current_user: User = Depends(get_current_user)
 ):
     """Admin-only route"""
-    if current_user_role != required_role:
-        raise HTTPException(status_code=403, detail="Access forbidden")
+    if str(current_user.role) != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     return {"message": "Welcome, admin!"}
 
 
