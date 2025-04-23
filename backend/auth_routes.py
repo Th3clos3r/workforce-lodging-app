@@ -145,4 +145,4 @@ def delete_test_users(
     db.query(User).filter(User.email.like("%testuser%")
                           ).delete(synchronize_session=False)
     db.commit()
-    return {"message": "Test users deleted"}
+    return None

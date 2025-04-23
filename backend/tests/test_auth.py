@@ -1,6 +1,29 @@
+import os
+from sqlalchemy import create_engine
 import pytest
+from sqlalchemy.orm import sessionmaker
+from fastapi.testclient import TestClient
 
-# REMOVED: no more global imports or TestClient here!
+import backend.database as _database
+import backend.auth_routes as _auth_routes
+from backend.main import app
+from backend.models import User
+from backend.auth import hash_password
+# Use environment variable if available (for GitHub Actions),
+# otherwise use SQLite
+SQLALCHEMY_DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "sqlite:///:memory:"
+)
+
+# Initialize engine based on database type
+if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    )
+else:
+    # For PostgreSQL in GitHub Actions
+    engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 
 def test_example():
@@ -13,6 +36,7 @@ def test_signup(client):
     admin_login = client.post(
         "/auth/login",
         data={"username": "admin@example.com", "password": "adminpassword"},
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
     )
 
     admin_token = admin_login.json().get("access_token")
@@ -35,6 +59,44 @@ def test_signup(client):
     )
 
     assert response.status_code == 200, f"Signup failed: {response.json()}"
+
+
+# Create session maker
+TestingSessionLocal = sessionmaker(
+    autocommit=False, autoflush=False, bind=engine
+)
+
+# Create all tables & seed the admin user
+_database.Base.metadata.create_all(bind=engine)
+db = TestingSessionLocal()
+db.add(
+    User(
+        email="admin@example.com",
+        hashed_password=hash_password("adminpassword"),
+        role="admin",
+    )
+)
+db.commit()
+db.close()
+
+
+# Override both get_db functions so every route uses our in‑memory session
+def override_get_db():
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+app.dependency_overrides[_database.get_db] = override_get_db
+app.dependency_overrides[_auth_routes.get_db] = override_get_db
+
+
+# Fixture for TestClient
+@pytest.fixture(scope="session")
+def client():
+    return TestClient(app)
 
 
 def test_login(client):
