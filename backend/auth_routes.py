@@ -109,7 +109,8 @@ def login_user(
 @router.get("/users/me", response_model=TokenData)
 def read_users_me(current_user: User = Depends(get_current_user)):
     """
-    Tests do data = response.json(); assert data.get('sub') == email
+    Return the JWT subject 'sub' so tests see data.get('sub') == email.
+
     """
     return {
         "email": current_user.email,
