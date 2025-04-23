@@ -39,6 +39,7 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     email: Optional[str] | None
     role: str
+    sub: str
 
 
 class UserCreate(BaseModel):
