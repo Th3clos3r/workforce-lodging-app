@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@mantine/core": "^7.17.5",
+    "@mantine/dates": "^7.17.5",
+    "@mantine/form": "^7.17.5",
+    "@mantine/hooks": "^7.17.5",
+    "@tabler/icons-react": "^3.31.0",
+    "axios": "^1.9.0",
+    "dayjs": "^1.11.13",
+    "react-router-dom": "^7.5.2"
+  }
+}
